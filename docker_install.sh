@@ -161,70 +161,17 @@ if [ -x "$(command -v snap)" ]; then
 fi
 
 if ! [ -x "$(command -v docker)" ]; then
-    # Almalinux
-    if [ "$OS_TYPE" == 'almalinux' ]; then
-        dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-        dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-        if ! [ -x "$(command -v docker)" ]; then
-            echo "Docker could not be installed automatically. Please visit https://docs.docker.com/engine/install/ and install Docker manually to continue."
-            exit 1
-        fi
-        systemctl start docker
-        systemctl enable docker
+    set +e
+    curl https://get.docker.com | sh -s -- --version ${DOCKER_VERSION}
+    if [ -x "$(command -v docker)" ]; then
+        echo "Docker installed successfully."
     else
-        set +e
-        if ! [ -x "$(command -v docker)" ]; then
-            echo "Docker is not installed. Installing Docker."
-            # Arch Linux
-            if [ "$OS_TYPE" = "arch" ]; then
-                pacman -Sy docker docker-compose --noconfirm
-                systemctl enable docker.service
-                if [ -x "$(command -v docker)" ]; then
-                    echo "Docker installed successfully."
-                else
-                    echo "Failed to install Docker with pacman. Try to install it manually."
-                    echo "Please visit https://wiki.archlinux.org/title/docker for more information."
-                    exit
-                fi
-            else
-                # Amazon Linux 2023
-                if [ "$OS_TYPE" = "amzn" ]; then
-                    dnf install docker -y
-                    DOCKER_CONFIG=${DOCKER_CONFIG:-/usr/local/lib/docker}
-                    mkdir -p $DOCKER_CONFIG/cli-plugins
-                    curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o $DOCKER_CONFIG/cli-plugins/docker-compose
-                    chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-                    systemctl start docker
-                    systemctl enable docker
-                    if [ -x "$(command -v docker)" ]; then
-                        echo "Docker installed successfully."
-                    else
-                        echo "Failed to install Docker with pacman. Try to install it manually."
-                        echo "Please visit https://wiki.archlinux.org/title/docker for more information."
-                        exit
-                    fi
-                else
-                    # Automated Docker installation
-                    curl https://releases.rancher.com/install-docker/${DOCKER_VERSION}.sh | sh
-                    if [ -x "$(command -v docker)" ]; then
-                        echo "Docker installed successfully."
-                    else
-                        echo "Docker installation failed with Rancher script. Trying with official script."
-                        curl https://get.docker.com | sh -s -- --version ${DOCKER_VERSION}
-                        if [ -x "$(command -v docker)" ]; then
-                            echo "Docker installed successfully."
-                        else
-                            echo "Docker installation failed with official script."
-                            echo "Maybe your OS is not supported?"
-                            echo "Please visit https://docs.docker.com/engine/install/ and install Docker manually to continue."
-                            exit 1
-                        fi
-                    fi
-                fi
-            fi
-        fi
-        set -e
+        echo "Docker installation failed with official script."
+        echo "Maybe your OS is not supported?"
+        echo "Please visit https://docs.docker.com/engine/install/ and install Docker manually to continue."
+        exit 1
     fi
+    set -e
 fi
 
 echo -e "-------------"
