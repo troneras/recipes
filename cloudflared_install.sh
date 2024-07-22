@@ -1,5 +1,9 @@
 !#/bin/bash
-
+if [ -z "${TUNNEL_TOKEN}" ]; then
+  echo "TUNNEL_TOKEN is not set."
+else
+  echo "TUNNEL_TOKEN is set to '${TUNNEL_TOKEN}'."
+fi
 ##############################################
 # Install Cloudflare Tunnel
 ##############################################
@@ -12,7 +16,7 @@ services:
     image: cloudflare/cloudflared:latest
     restart: always
     container_name: cloudflared
-    command: tunnel run --token ${tunnel_token}
+    command: tunnel run --token ${TUNNEL_TOKEN}
 EOF
 echo "Starting Cloudflared tunnel..."
 cd /tmp
