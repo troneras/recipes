@@ -13,12 +13,6 @@ services:
     restart: always
     container_name: cloudflared
     command: tunnel run --token ${tunnel_token}
-    networks: 
-      - coolify
-
-networks:
-  coolify:
-    external: true
 EOF
 echo "Starting Cloudflared tunnel..."
 cd /tmp
